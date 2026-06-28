@@ -1,0 +1,50 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
+
+interface ToastProps {
+  message: string;
+  type?: 'success' | 'error' | 'warning';
+  onClose: () => void;
+}
+
+export function Toast({ message, type = 'success', onClose }: ToastProps) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 4000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const styles = {
+    success: { bg: 'bg-emerald-500/20 border-emerald-500/30', icon: CheckCircle, color: 'text-emerald-400' },
+    error: { bg: 'bg-red-500/20 border-red-500/30', icon: XCircle, color: 'text-red-400' },
+    warning: { bg: 'bg-yellow-500/20 border-yellow-500/30', icon: AlertCircle, color: 'text-yellow-400' },
+  };
+
+  const { bg, icon: Icon, color } = styles[type];
+
+  return (
+    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border ${bg} backdrop-blur-sm animate-fade-in`}>
+      <Icon size={18} className={color} />
+      <span className="text-white text-sm">{message}</span>
+      <button onClick={onClose} className="text-slate-400 hover:text-white ml-2">
+        <X size={16} />
+      </button>
+    </div>
+  );
+}
+
+// Hook
+export function useToast() {
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setToast({ message, type });
+  };
+
+  const ToastComponent = toast ? (
+    <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+  ) : null;
+
+  return { showToast, ToastComponent };
+}

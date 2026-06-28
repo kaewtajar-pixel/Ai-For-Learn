@@ -1,0 +1,95 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { logout } from '@/lib/auth';
+import {
+  LayoutDashboard, BookOpen, FileVideo, Users, ClipboardList,
+  CreditCard, Settings, BarChart3, LogOut, BookMarked, Menu, X
+} from 'lucide-react';
+import { useState } from 'react';
+
+const navItems = [
+  { href: '/admin', label: 'แดชบอร์ด', icon: LayoutDashboard },
+  { href: '/admin/courses', label: 'คอร์สเรียน', icon: BookOpen },
+  { href: '/admin/lessons', label: 'บทเรียน', icon: FileVideo },
+  { href: '/admin/members', label: 'สมาชิก', icon: Users },
+  { href: '/admin/enrollments', label: 'การลงทะเบียน', icon: ClipboardList },
+  { href: '/admin/payments', label: 'การชำระเงิน', icon: CreditCard },
+  { href: '/admin/analytics', label: 'สถิติ', icon: BarChart3 },
+  { href: '/admin/settings', label: 'ตั้งค่า', icon: Settings },
+];
+
+export default function AdminSidebar() {
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className="p-6 border-b border-white/5">
+        <Link href="/admin" className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+            <BookMarked size={18} className="text-white" />
+          </div>
+          <div>
+            <div className="text-white font-bold text-sm">AI For Learn</div>
+            <div className="text-slate-500 text-xs">Admin Panel</div>
+          </div>
+        </Link>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+          return (
+            <Link key={item.href} href={item.href}
+              className={`sidebar-link ${isActive ? 'active' : ''}`}
+              onClick={() => setMobileOpen(false)}>
+              <Icon size={18} />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Logout */}
+      <div className="p-4 border-t border-white/5">
+        <button onClick={logout}
+          className="sidebar-link w-full hover:text-red-400 hover:bg-red-500/10">
+          <LogOut size={18} />
+          ออกจากระบบ
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile button */}
+      <button className="lg:hidden fixed top-4 left-4 z-50 glass p-2 rounded-xl text-white"
+        onClick={() => setMobileOpen(!mobileOpen)}>
+        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={() => setMobileOpen(false)} />
+      )}
+
+      {/* Sidebar desktop */}
+      <aside className={`sidebar w-64 flex-shrink-0 hidden lg:block`}>
+        <SidebarContent />
+      </aside>
+
+      {/* Sidebar mobile */}
+      <aside className={`sidebar w-64 flex-shrink-0 lg:hidden fixed left-0 top-0 z-50 transition-transform ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <SidebarContent />
+      </aside>
+    </>
+  );
+}

@@ -1,0 +1,105 @@
+'use client';
+
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { getUser, logout } from '@/lib/auth';
+import { User } from '@/types';
+import { Menu, X, BookOpen, LogOut, User as UserIcon, LayoutDashboard } from 'lucide-react';
+
+export default function Navbar() {
+  const [user, setUser] = useState<User | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    setUser(getUser());
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      scrolled ? 'glass py-3' : 'py-5'
+    }`}>
+      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+            <BookOpen size={18} className="text-white" />
+          </div>
+          <span className="font-bold text-white text-lg hidden sm:block">
+            AI<span className="gradient-text"> For Learn</span>
+          </span>
+        </Link>
+
+        {/* Desktop Nav */}
+        <div className="hidden md:flex items-center gap-6">
+          <Link href="/courses" className="text-slate-400 hover:text-white text-sm transition-colors">
+            คอร์สทั้งหมด
+          </Link>
+          {user ? (
+            <>
+              <Link href={user.role === 'admin' ? '/admin' : '/dashboard'} 
+                className="text-slate-400 hover:text-white text-sm transition-colors flex items-center gap-1">
+                <LayoutDashboard size={14} />
+                {user.role === 'admin' ? 'แผงควบคุม' : 'คอร์สของฉัน'}
+              </Link>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                  {user.name?.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-slate-300 text-sm">{user.name}</span>
+              </div>
+              <button onClick={logout} className="flex items-center gap-1 text-slate-400 hover:text-red-400 text-sm transition-colors">
+                <LogOut size={14} />
+                ออกจากระบบ
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="btn-secondary text-sm py-2">
+                เข้าสู่ระบบ
+              </Link>
+              <Link href="/register" className="btn-primary text-sm py-2">
+                สมัครสมาชิก
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* Mobile toggle */}
+        <button className="md:hidden text-white" onClick={() => setMenuOpen(!menuOpen)}>
+          {menuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="md:hidden glass-card mt-2 mx-4 p-4 flex flex-col gap-3">
+          <Link href="/courses" className="text-slate-300 py-2" onClick={() => setMenuOpen(false)}>
+            คอร์สทั้งหมด
+          </Link>
+          {user ? (
+            <>
+              <Link href={user.role === 'admin' ? '/admin' : '/dashboard'} 
+                className="text-slate-300 py-2" onClick={() => setMenuOpen(false)}>
+                {user.role === 'admin' ? 'แผงควบคุม Admin' : 'คอร์สของฉัน'}
+              </Link>
+              <button onClick={logout} className="text-red-400 py-2 text-left">ออกจากระบบ</button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="btn-secondary text-center" onClick={() => setMenuOpen(false)}>
+                เข้าสู่ระบบ
+              </Link>
+              <Link href="/register" className="btn-primary text-center" onClick={() => setMenuOpen(false)}>
+                สมัครสมาชิก
+              </Link>
+            </>
+          )}
+        </div>
+      )}
+    </nav>
+  );
+}
